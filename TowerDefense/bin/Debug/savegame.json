@@ -1,0 +1,18 @@
+{
+  "Money": 834,
+  "Lives": 20,
+  "CurrentWave": 6,
+  "LevelId": 10,
+  "Towers": [
+    {
+      "Type": "Archer",
+      "X": 220.0,
+      "Y": 100.0
+    },
+    {
+      "Type": "Archer",
+      "X": 140.0,
+      "Y": 300.0
+    }
+  ]
+}

@@ -1,0 +1,16 @@
+{
+  "ExpandedNodes": [
+    "",
+    "\\TowerDefense",
+    "\\TowerDefense\\Assets",
+    "\\TowerDefense\\Components",
+    "\\TowerDefense\\Configs",
+    "\\TowerDefense\\Core",
+    "\\TowerDefense\\Data",
+    "\\TowerDefense\\Managers",
+    "\\TowerDefense\\Properties",
+    "\\TowerDefense\\Utils"
+  ],
+  "SelectedNode": "\\TowerDefense\\Forms\\GameLevels\\GameLevel1.cs",
+  "PreviewInSolutionExplorer": false
+}
