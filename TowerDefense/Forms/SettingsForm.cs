@@ -2,15 +2,16 @@
 using System.Drawing;
 using System.Drawing.Drawing2D;
 using System.Windows.Forms;
-using TowerDefense.Managers; // Để gọi SoundManager
 using TowerDefense.Configs;  // Để lưu GameSettings
-using TowerDefense.Utils;
+using TowerDefense.Managers; // Để gọi SoundManager
+using TowerDefense.Utils;    // <--- QUAN TRỌNG: Để dùng CyberButton từ thư mục Utils
 
 namespace TowerDefense.Forms
 {
     public class SettingsForm : Form
     {
         // --- CÁC CONTROL TỰ CHẾ (CUSTOM CONTROLS) ---
+        // NeonSlider và CyberSwitch được định nghĩa ở cuối file này
         private NeonSlider _sliderMusic;
         private NeonSlider _sliderSfx;
         private CyberSwitch _swAutoWave;
@@ -48,9 +49,6 @@ namespace TowerDefense.Forms
 
         private void InitializeFutureUI()
         {
-            int centerX = this.Width / 2;
-            int startY = 80;
-
             // --- HEADER ---
             Label lblTitle = new Label
             {
@@ -119,7 +117,6 @@ namespace TowerDefense.Forms
             _swAutoWave.Location = new Point(380, 320);
             _swAutoWave.CheckedChanged += (isOn) => {
                 GameSettings.AutoStartWave = isOn; // Lưu setting
-                // Demo sound
                 SoundManager.Play("click");
             };
             this.Controls.Add(_swAutoWave);
@@ -142,10 +139,11 @@ namespace TowerDefense.Forms
             // ========================================================
             // 3. ACTION BUTTONS
             // ========================================================
+            // CyberButton được lấy từ TowerDefense.Utils (đã xóa class thừa ở dưới)
             CyberButton btnSave = new CyberButton("APPLY CHANGES");
             btnSave.Location = new Point(125, 520);
             btnSave.Click += (s, e) => {
-                SoundManager.Play("click"); // SoundManager.Play("upgrade"); nếu có
+                SoundManager.Play("click");
                 this.DialogResult = DialogResult.OK;
                 this.Close();
             };
@@ -313,6 +311,4 @@ namespace TowerDefense.Forms
             g.FillEllipse(Brushes.White, toggleX, 2, Height - 5, Height - 5);
         }
     }
-
-    // 3. NÚT BẤM CYBER (Custom Button)
 }

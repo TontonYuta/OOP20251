@@ -1,18 +1,18 @@
 ﻿using System;
 using System.Drawing;
 using System.Windows.Forms;
-using TowerDefense.Forms.GameLevels;
-using TowerDefense.Utils;
+using TowerDefense.Forms.GameLevels; // Để gọi GameLevel1
+using TowerDefense.Managers;         // Để gọi SoundManager
+using TowerDefense.Utils;            // <--- QUAN TRỌNG: Để gọi CyberButton
 
 namespace TowerDefense.Forms
 {
-    public partial class LevelSelectForm : Form
+    public partial class LevelSelectForm : Form // Hoặc kế thừa CyberFormBase nếu bạn đã tạo nó
     {
         private FlowLayoutPanel _pnlLevels;
         private PictureBox _bgContainer;
 
-        // --- BÍ KÍP CHỐNG NHÁY/ĐEN MÀN HÌNH ---
-        // Ép hệ thống vẽ chồng lớp (Composited) để xử lý ảnh động mượt mà
+        // BÍ KÍP CHỐNG NHÁY
         protected override CreateParams CreateParams
         {
             get
@@ -30,11 +30,9 @@ namespace TowerDefense.Forms
             this.StartPosition = FormStartPosition.CenterScreen;
             this.FormBorderStyle = FormBorderStyle.FixedDialog;
             this.MaximizeBox = false;
-
-            // Đặt màu nền trùng màu tối để nếu ảnh chưa load kịp thì không bị trắng xóa
             this.BackColor = Color.FromArgb(30, 30, 40);
 
-            InitializeComponent();
+            // InitializeComponent(); // Nếu không dùng Designer thì bỏ dòng này
             SetupUI();
         }
 
@@ -45,17 +43,12 @@ namespace TowerDefense.Forms
             _bgContainer.Dock = DockStyle.Fill;
             _bgContainer.SizeMode = PictureBoxSizeMode.StretchImage;
 
-            // Đường dẫn ảnh
-            string gifPath = System.IO.Path.Combine(AppDomain.CurrentDomain.BaseDirectory, @"..\..\Assets\Images\level_select_bg.gif");
+            string gifPath = System.IO.Path.Combine(AppDomain.CurrentDomain.BaseDirectory, @"Assets\Images\level_select_bg.gif");
+            if (!System.IO.File.Exists(gifPath))
+                gifPath = System.IO.Path.Combine(AppDomain.CurrentDomain.BaseDirectory, @"..\..\Assets\Images\level_select_bg.gif");
 
-            if (System.IO.File.Exists(gifPath))
-            {
-                _bgContainer.Image = Image.FromFile(gifPath);
-            }
-            else
-            {
-                _bgContainer.BackColor = Color.FromArgb(30, 30, 40);
-            }
+            if (System.IO.File.Exists(gifPath)) _bgContainer.Image = Image.FromFile(gifPath);
+            else _bgContainer.BackColor = Color.FromArgb(30, 30, 40);
 
             this.Controls.Add(_bgContainer);
 
@@ -69,39 +62,41 @@ namespace TowerDefense.Forms
                 Location = new Point(280, 20),
                 BackColor = Color.Transparent
             };
-            _bgContainer.Controls.Add(lbl); // <--- Add vào BG
+            _bgContainer.Controls.Add(lbl);
 
             // 3. CONTAINER CHỨA NÚT
             _pnlLevels = new FlowLayoutPanel
             {
                 Location = new Point(50, 90),
                 Size = new Size(760, 400),
-                // Mẹo: Nếu Transparent vẫn bị lỗi đen, hãy đổi thành màu đen mờ (Alpha thấp)
                 BackColor = Color.FromArgb(100, 0, 0, 0),
                 AutoScroll = true
             };
-            _bgContainer.Controls.Add(_pnlLevels); // <--- Add vào BG
+            _bgContainer.Controls.Add(_pnlLevels);
 
+            // Tạo 10 level
             for (int i = 1; i <= 10; i++)
             {
                 CreateLevelButton(i);
             }
 
-            // 4. NÚT BACK
-            GameButton btnBack = new GameButton
-            {
-                Text = "BACK TO MENU",
-                Size = new Size(200, 50),
-                Location = new Point(325, 500),
-                Color1 = Color.DarkSlateGray,
-                Color2 = Color.Black
+            // 4. NÚT BACK (Dùng CyberButton)
+            CyberButton btnBack = new CyberButton("BACK TO MENU");
+            btnBack.Size = new Size(200, 50);
+            btnBack.Location = new Point(325, 520);
+            btnBack.DefaultColor = Color.FromArgb(40, 40, 40);
+            btnBack.BorderColor = Color.Gray;
+
+            btnBack.Click += (s, e) => {
+                SoundManager.Play("click"); // Đã thêm ở bước 1
+                this.Close();
             };
-            btnBack.Click += (s, e) => this.Close();
-            _bgContainer.Controls.Add(btnBack); // <--- Add vào BG
+            _bgContainer.Controls.Add(btnBack);
         }
 
         private void CreateLevelButton(int id)
         {
+            // LOGIC MÀU SẮC CŨ CỦA BẠN (GIỮ NGUYÊN)
             Color baseColor = Color.LightGreen;
             string difficulty = "Easy";
 
@@ -109,15 +104,18 @@ namespace TowerDefense.Forms
             else if (id >= 7 && id <= 9) { baseColor = Color.OrangeRed; difficulty = "Hard"; }
             else if (id == 10) { baseColor = Color.Purple; difficulty = "EXTREME"; }
 
-            GameButton btn = new GameButton
+            // Dùng CyberButton thay vì GameButton
+            CyberButton btn = new CyberButton
             {
                 Text = $"LEVEL {id}\n{difficulty}",
                 Size = new Size(130, 100),
-                Color1 = ControlPaint.Light(baseColor),
-                Color2 = baseColor,
-                BorderRadius = 20,
+                Margin = new Padding(10),
                 Font = new Font("Arial", 10, FontStyle.Bold),
-                Margin = new Padding(10)
+
+                // Mapping màu sang style Cyber
+                BorderColor = baseColor,
+                DefaultColor = Color.FromArgb(30, 30, 40),
+                HoverColor = Color.FromArgb(baseColor.R / 2, baseColor.G / 2, baseColor.B / 2)
             };
 
             btn.Click += (s, e) => OpenGameLevel(id);
@@ -126,12 +124,14 @@ namespace TowerDefense.Forms
 
         private void OpenGameLevel(int levelId)
         {
+            SoundManager.Play("click");
             this.Hide();
-            GameLevel1 game = new GameLevel1(levelId);
-            game.ShowDialog();
+            using (var game = new GameLevel1(levelId))
+            {
+                game.ShowDialog();
+            }
             this.Show();
+            SoundManager.PlayMusic("menu_theme.wav");
         }
-
-        private void InitializeComponent() { }
     }
 }

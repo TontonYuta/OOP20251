@@ -1,162 +1,175 @@
 ﻿using System;
 using System.Drawing;
+using System.Drawing.Drawing2D;
+using System.IO;
 using System.Windows.Forms;
 using TowerDefense.Forms.GameLevels;
 using TowerDefense.Forms.Reports;
 using TowerDefense.Managers;
-using TowerDefense.Utils;
+// =========================================================
+using TowerDefense.Utils; // <--- QUAN TRỌNG NHẤT: Để nhận diện CyberButton
+// =========================================================
 
 namespace TowerDefense.Forms
 {
     public partial class MainMenuForm : Form
     {
-        // Biến này chứa khung ảnh nền GIF
         private PictureBox _bgContainer;
+        private Timer _animTimer;
+        private int _gridOffset = 0;
 
         public MainMenuForm()
         {
             InitializeComponent();
             SetupMenuUI();
+
             SoundManager.PlayMusic("menu_theme.wav");
+
+            // Timer hiệu ứng lưới
+            _animTimer = new Timer();
+            _animTimer.Interval = 50;
+            _animTimer.Tick += (s, e) => {
+                _gridOffset = (_gridOffset + 1) % 40;
+                _bgContainer.Invalidate();
+            };
+            _animTimer.Start();
         }
 
         private void SetupMenuUI()
         {
-            this.Text = "Tower Defense Game";
-            this.Size = new Size(600, 650);
+            this.Text = "Tower Defense - Chaos Edition";
+            this.Size = new Size(600, 850);
             this.StartPosition = FormStartPosition.CenterScreen;
-            this.FormBorderStyle = FormBorderStyle.FixedSingle;
-            this.MaximizeBox = false;
+            this.FormBorderStyle = FormBorderStyle.None;
+            this.BackColor = Color.Black;
+            this.DoubleBuffered = true;
 
-            // --- 1. CÀI ĐẶT NỀN GIF ---
+            // 1. NỀN GIF
             _bgContainer = new PictureBox();
-            _bgContainer.Dock = DockStyle.Fill; // Tràn màn hình
-            _bgContainer.SizeMode = PictureBoxSizeMode.StretchImage; // Co giãn ảnh
+            _bgContainer.Dock = DockStyle.Fill;
+            _bgContainer.SizeMode = PictureBoxSizeMode.StretchImage;
 
-            // Đường dẫn ảnh GIF
-            string gifPath = System.IO.Path.Combine(AppDomain.CurrentDomain.BaseDirectory, @"..\..\Assets\Images\menu_bg.gif");
+            string gifPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, @"Assets\Images\menu_bg.gif");
+            if (!File.Exists(gifPath)) gifPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, @"..\..\Assets\Images\menu_bg.gif");
 
-            if (System.IO.File.Exists(gifPath))
-            {
-                _bgContainer.Image = Image.FromFile(gifPath); // Tự động chạy GIF
-            }
-            else
-            {
-                _bgContainer.BackColor = Color.FromArgb(20, 20, 30); // Màu đen dự phòng nếu không thấy ảnh
-            }
+            if (File.Exists(gifPath)) _bgContainer.Image = Image.FromFile(gifPath);
+            else _bgContainer.BackColor = Color.FromArgb(10, 10, 15);
 
-            // Thêm khung nền vào Form
+            _bgContainer.Paint += DrawCyberOverlay;
             this.Controls.Add(_bgContainer);
 
-            // ==================================================================================
-            // 2. TẠO TIÊU ĐỀ (ADD VÀO _bgContainer)
-            // ==================================================================================
-            Font titleFont = new Font("Arial Black", 28, FontStyle.Bold);
-            string titleText = "DEFENSE OF THE TOWER";
-            Point titlePos = new Point(30, 40);
+            // 2. MENU BUTTONS
+            int startY = 180;
+            int gap = 65;
+            int btnX = (this.Width - 260) / 2;
 
-            // Lớp BÓNG (Shadow)
-            Label lblTitleShadow = new Label();
-            lblTitleShadow.Text = titleText;
-            lblTitleShadow.Font = titleFont;
-            lblTitleShadow.AutoSize = true;
-            lblTitleShadow.Location = new Point(titlePos.X + 4, titlePos.Y + 4);
-            lblTitleShadow.ForeColor = Color.FromArgb(100, 0, 0, 0); // Đen bán trong suốt
-            lblTitleShadow.BackColor = Color.Transparent;
-
-            // QUAN TRỌNG: Add vào _bgContainer
-            _bgContainer.Controls.Add(lblTitleShadow);
-
-            // Lớp CHÍNH (Main)
-            Label lblTitleMain = new Label();
-            lblTitleMain.Text = titleText;
-            lblTitleMain.Font = titleFont;
-            lblTitleMain.AutoSize = true;
-            lblTitleMain.Location = titlePos;
-            lblTitleMain.ForeColor = Color.Gold;
-            lblTitleMain.BackColor = Color.Transparent;
-
-            _bgContainer.Controls.Add(lblTitleMain); // QUAN TRỌNG
-            lblTitleMain.BringToFront();
-
-            // Subtitle
-            Label lblSub = new Label();
-            lblSub.Text = "ULTIMATE STRATEGY GAME";
-            lblSub.Font = new Font("Arial", 12, FontStyle.Italic | FontStyle.Bold);
-            lblSub.AutoSize = true;
-            lblSub.Location = new Point(180, 100);
-            lblSub.ForeColor = Color.LightGoldenrodYellow;
-            lblSub.BackColor = Color.Transparent;
-
-            _bgContainer.Controls.Add(lblSub); // QUAN TRỌNG
-
-            // ==================================================================================
-            // 3. TẠO CÁC NÚT BẤM
-            // ==================================================================================
-            int startY = 160;
-            int gap = 75;
-
-            var btnPlay = CreateMenuButton("PLAY GAME", startY, Color.OrangeRed);
+            // PLAY GAME
+            var btnPlay = CreateCyberButton("▶ INITIATE GAME", btnX, startY, true);
             btnPlay.Click += (s, e) => {
+                SoundManager.Play("click");
                 this.Hide();
                 new LevelSelectForm().ShowDialog();
                 this.Show();
+                SoundManager.PlayMusic("menu_theme.wav");
             };
 
-            var btnShop = CreateMenuButton("SHOP & UPGRADE", startY + gap, Color.Purple);
+            // SETTINGS
+            var btnSettings = CreateCyberButton("⚙ SYSTEM CONFIG", btnX, startY + gap);
+            btnSettings.Click += (s, e) => {
+                SoundManager.Play("click");
+                new SettingsForm().ShowDialog();
+            };
+
+            // SHOP
+            var btnShop = CreateCyberButton("🛒 ARMORY & SHOP", btnX, startY + gap * 2);
             btnShop.Click += (s, e) => {
+                SoundManager.Play("click");
                 this.Hide();
                 new ShopForm().ShowDialog();
                 this.Show();
             };
 
-            var btnScore = CreateMenuButton("HIGH SCORES", startY + gap * 2, Color.DodgerBlue);
-            btnScore.Click += (s, e) => { new HighScoreForm().ShowDialog(); };
+            // HIGH SCORES
+            var btnScore = CreateCyberButton("🏆 HALL OF FAME", btnX, startY + gap * 3);
+            btnScore.Click += (s, e) => { SoundManager.Play("click"); new HighScoreForm().ShowDialog(); };
 
-            var btnBestiary = CreateMenuButton("BESTIARY", startY + gap * 3, Color.ForestGreen);
-            btnBestiary.Click += (s, e) => { new BestiaryForm().ShowDialog(); };
+            // BESTIARY
+            var btnBestiary = CreateCyberButton("👹 ENEMY DATABASE", btnX, startY + gap * 4);
+            btnBestiary.Click += (s, e) => { SoundManager.Play("click"); new BestiaryForm().ShowDialog(); };
 
-            var btnHistory = CreateMenuButton("MATCH HISTORY", startY + gap * 4, Color.Teal);
-            btnHistory.Click += (s, e) => { new HistoryForm().ShowDialog(); };
+            // HISTORY
+            var btnHistory = CreateCyberButton("📜 BATTLE LOGS", btnX, startY + gap * 5);
+            btnHistory.Click += (s, e) => { SoundManager.Play("click"); new HistoryForm().ShowDialog(); };
 
-            var btnAbout = CreateMenuButton("ℹ  ABOUT GAME", startY + gap * 5, Color.DodgerBlue);
-            btnAbout.Click += (s, e) => { new AboutForm().ShowDialog(); };
+            // ABOUT
+            var btnAbout = CreateCyberButton("ℹ ABOUT SYSTEM", btnX, startY + gap * 6);
+            btnAbout.Click += (s, e) => { SoundManager.Play("click"); new AboutForm().ShowDialog(); };
 
-            var btnExit = CreateMenuButton("🚪  EXIT GAME", startY + gap * 6, Color.DarkRed);
+            // EXIT
+            var btnExit = CreateCyberButton("🚪 TERMINATE", btnX, startY + gap * 7);
+            btnExit.ForeColor = Color.Red;
             btnExit.Click += (s, e) => Application.Exit();
 
-            // Tăng kích thước Form một chút
-            this.Size = new Size(600, 750);
+            // Nút kéo cửa sổ
+            Label dragHandle = new Label { Dock = DockStyle.Top, Height = 30, BackColor = Color.Transparent, Cursor = Cursors.SizeAll };
+            dragHandle.MouseDown += (s, e) => {
+                if (e.Button == MouseButtons.Left) { ReleaseCapture(); SendMessage(Handle, 0xA1, 0x2, 0); }
+            };
+            _bgContainer.Controls.Add(dragHandle);
         }
 
-        // Hàm tạo nút đã được sửa để add vào _bgContainer
-        private Button CreateMenuButton(string text, int y, Color baseColor)
+        private void DrawCyberOverlay(object sender, PaintEventArgs e)
         {
-            GameButton btn = new GameButton();
+            Graphics g = e.Graphics;
+            g.SmoothingMode = SmoothingMode.AntiAlias;
+            int w = _bgContainer.Width;
+            int h = _bgContainer.Height;
+
+            // Vẽ Lưới
+            using (Pen gridPen = new Pen(Color.FromArgb(30, 0, 255, 255), 1))
+            {
+                for (int x = 0; x < w; x += 40) g.DrawLine(gridPen, x, 0, x, h);
+                for (int y = _gridOffset - 40; y < h; y += 40) g.DrawLine(gridPen, 0, y, w, y);
+            }
+
+            // Vẽ Tiêu đề
+            string title = "DEFENSE PROTOCOL";
+            string sub = "CHAOS EDITION v1.2";
+            Font fTitle = new Font("Segoe UI", 32, FontStyle.Bold);
+            Font fSub = new Font("Consolas", 12, FontStyle.Bold);
+
+            SizeF sTitle = g.MeasureString(title, fTitle);
+            float tx = (w - sTitle.Width) / 2;
+            float ty = 50;
+
+            g.DrawString(title, fTitle, new SolidBrush(Color.FromArgb(100, 255, 0, 0)), tx - 3, ty);
+            g.DrawString(title, fTitle, new SolidBrush(Color.FromArgb(100, 0, 255, 255)), tx + 3, ty);
+            g.DrawString(title, fTitle, Brushes.White, tx, ty);
+
+            SizeF sSub = g.MeasureString(sub, fSub);
+            g.DrawString(sub, fSub, Brushes.Gold, (w - sSub.Width) / 2, ty + 60);
+
+            // Vẽ Viền
+            using (Pen p = new Pen(Color.Cyan, 3)) g.DrawRectangle(p, 0, 0, w, h);
+        }
+
+        private CyberButton CreateCyberButton(string text, int x, int y, bool isPrimary = false)
+        {
+            CyberButton btn = new CyberButton();
             btn.Text = text;
-            btn.Size = new Size(240, 60);
-            btn.Location = new Point(180, y);
-            btn.Font = new Font("Arial", 12, FontStyle.Bold);
-
-            // Màu sắc
-            btn.Color1 = ControlPaint.Light(baseColor);
-            btn.Color2 = ControlPaint.Dark(baseColor);
-            btn.HoverColor1 = baseColor;
-            btn.HoverColor2 = ControlPaint.Light(baseColor);
-            btn.BorderRadius = 20;
-
-            // Icon giả lập
-            if (text.Contains("PLAY")) btn.Text = "▶  " + text;
-            else if (text.Contains("SHOP")) btn.Text = "🛒  " + text;
-            else if (text.Contains("SCORES")) btn.Text = "🏆  " + text;
-            else if (text.Contains("BESTIARY")) btn.Text = "👹  " + text;
-            else if (text.Contains("HISTORY")) btn.Text = "📜  " + text;
-            else if (text.Contains("EXIT")) btn.Text = "🚪  " + text;
-
-            // --- QUAN TRỌNG NHẤT: Add nút vào trong khung ảnh nền ---
+            btn.Location = new Point(x, y);
+            if (isPrimary)
+            {
+                btn.DefaultColor = Color.FromArgb(0, 100, 180);
+                btn.HoverColor = Color.FromArgb(0, 150, 255);
+            }
             _bgContainer.Controls.Add(btn);
-
             return btn;
         }
+
+        [System.Runtime.InteropServices.DllImport("user32.dll")]
+        public static extern int SendMessage(IntPtr hWnd, int Msg, int wParam, int lParam);
+        [System.Runtime.InteropServices.DllImport("user32.dll")]
+        public static extern bool ReleaseCapture();
     }
 }
