@@ -1,62 +1,42 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Drawing;
-using System.Drawing.Drawing2D;
 using System.Windows.Forms;
-using TowerDefense.Managers;
-using TowerDefense.Utils;
+using TowerDefense.Managers; // <--- Cần dòng này để gọi HighScoreManager
+using TowerDefense.Utils;    // <--- Cần dòng này để gọi CyberButton
 
 namespace TowerDefense.Forms.Reports
 {
-    public partial class HighScoreForm : Form
+    public partial class HighScoreForm : CyberFormBase
     {
         private DataGridView _grid;
 
         public HighScoreForm()
         {
-            InitializeComponent();
+            // 1. Cấu hình Form (Base đã lo phần viền)
+            this.Size = new Size(550, 700);
+
+            // Set tiêu đề cho Form cha
+            if (lblTitle != null) lblTitle.Text = "HALL OF FAME // RANKING";
+
             SetupUI();
             LoadData();
         }
 
         private void SetupUI()
         {
-            // Cấu hình Form
-            this.Text = "HALL OF FAME";
-            this.Size = new Size(500, 600);
-            this.StartPosition = FormStartPosition.CenterParent;
-            this.FormBorderStyle = FormBorderStyle.FixedDialog;
-            this.MaximizeBox = false;
-
-            // Nền Gradient
-            this.Paint += (s, e) => {
-                using (LinearGradientBrush brush = new LinearGradientBrush(this.ClientRectangle,
-                       Color.FromArgb(40, 40, 60), Color.FromArgb(10, 10, 20), 90F))
-                {
-                    e.Graphics.FillRectangle(brush, this.ClientRectangle);
-                }
-            };
-
-            // Tiêu đề
-            Label lblTitle = new Label
-            {
-                Text = "🏆 LEADERBOARD 🏆",
-                Font = new Font("Arial", 20, FontStyle.Bold),
-                ForeColor = Color.Gold,
-                AutoSize = true,
-                Location = new Point(110, 20),
-                BackColor = Color.Transparent
-            };
-            this.Controls.Add(lblTitle);
-
-            // Custom DataGridView
+            // 2. TẠO GRIDVIEW (Giao diện Terminal)
             _grid = new DataGridView();
-            _grid.Location = new Point(25, 70);
-            _grid.Size = new Size(435, 400);
-            _grid.BackgroundColor = Color.FromArgb(30, 30, 40);
+            _grid.Location = new Point(25, 80);
+            _grid.Size = new Size(500, 500);
+
+            // Màu sắc Dark Mode
+            _grid.BackgroundColor = Color.FromArgb(20, 20, 25); // Nền bảng
             _grid.BorderStyle = BorderStyle.None;
             _grid.CellBorderStyle = DataGridViewCellBorderStyle.SingleHorizontal;
-            _grid.GridColor = Color.DimGray;
+            _grid.GridColor = Color.FromArgb(50, 50, 60); // Màu đường kẻ mờ
 
+            // Cấu hình hành vi
             _grid.ReadOnly = true;
             _grid.RowHeadersVisible = false;
             _grid.AllowUserToResizeRows = false;
@@ -65,85 +45,85 @@ namespace TowerDefense.Forms.Reports
             _grid.AutoGenerateColumns = false;
             _grid.ScrollBars = ScrollBars.Vertical;
 
-            // Style Header
+            // Style Header (Tiêu đề cột)
             _grid.EnableHeadersVisualStyles = false;
             _grid.ColumnHeadersBorderStyle = DataGridViewHeaderBorderStyle.None;
-            _grid.ColumnHeadersDefaultCellStyle.BackColor = Color.FromArgb(20, 20, 30);
-            _grid.ColumnHeadersDefaultCellStyle.ForeColor = Color.White;
-            _grid.ColumnHeadersDefaultCellStyle.Font = new Font("Arial", 10, FontStyle.Bold);
-            _grid.ColumnHeadersHeight = 40;
+            _grid.ColumnHeadersDefaultCellStyle.BackColor = Color.FromArgb(0, 60, 80); // Xanh đậm
+            _grid.ColumnHeadersDefaultCellStyle.ForeColor = Color.Cyan; // Chữ Neon
+            _grid.ColumnHeadersDefaultCellStyle.Font = new Font("Segoe UI", 11, FontStyle.Bold);
+            _grid.ColumnHeadersHeight = 45;
+            _grid.ColumnHeadersHeightSizeMode = DataGridViewColumnHeadersHeightSizeMode.DisableResizing;
 
-            // Style Rows
-            _grid.DefaultCellStyle.BackColor = Color.FromArgb(40, 40, 50);
+            // Style Rows (Dòng dữ liệu)
+            _grid.DefaultCellStyle.BackColor = Color.FromArgb(30, 30, 40);
             _grid.DefaultCellStyle.ForeColor = Color.WhiteSmoke;
-            _grid.DefaultCellStyle.Font = new Font("Segoe UI", 11);
-            _grid.DefaultCellStyle.SelectionBackColor = Color.FromArgb(60, 60, 80);
-            _grid.DefaultCellStyle.SelectionForeColor = Color.White;
-            _grid.RowTemplate.Height = 35;
+            _grid.DefaultCellStyle.Font = new Font("Consolas", 11); // Font kiểu code
+            _grid.DefaultCellStyle.SelectionBackColor = Color.Cyan;
+            _grid.DefaultCellStyle.SelectionForeColor = Color.Black;
+            _grid.DefaultCellStyle.Padding = new Padding(5);
+            _grid.RowTemplate.Height = 40;
 
-            // --- ĐÃ SỬA: BỎ CỘT DATE VÀ TĂNG ĐỘ RỘNG CÁC CỘT KHÁC ---
-            // Tổng chiều rộng grid là 435 (trừ scrollbar ~20 còn khoảng 415)
-            _grid.Columns.Add(new DataGridViewTextBoxColumn { HeaderText = "RANK", Width = 70, DataPropertyName = "Rank" });
-            _grid.Columns.Add(new DataGridViewTextBoxColumn { HeaderText = "PLAYER NAME", Width = 230, DataPropertyName = "Name" }); // Tăng từ 180 lên 230
-            _grid.Columns.Add(new DataGridViewTextBoxColumn { HeaderText = "SCORE", Width = 115, DataPropertyName = "Score" });
-            // Đã xóa dòng add cột DATE
+            // Thêm Cột
+            _grid.Columns.Add(new DataGridViewTextBoxColumn { HeaderText = "RANK", DataPropertyName = "Rank", Width = 70 });
+            _grid.Columns.Add(new DataGridViewTextBoxColumn { HeaderText = "OPERATOR", DataPropertyName = "Name", Width = 250 });
+            _grid.Columns.Add(new DataGridViewTextBoxColumn { HeaderText = "SCORE", DataPropertyName = "Score", Width = 150 });
 
-            // Căn giữa Rank và Căn phải Score
+            // Căn lề và định dạng số
             _grid.Columns[0].DefaultCellStyle.Alignment = DataGridViewContentAlignment.MiddleCenter;
             _grid.Columns[2].DefaultCellStyle.Alignment = DataGridViewContentAlignment.MiddleRight;
+            _grid.Columns[2].DefaultCellStyle.Format = "N0"; // Thêm dấu phẩy (vd: 1,000)
 
+            // Đăng ký sự kiện tô màu Top 3
             _grid.CellFormatting += Grid_CellFormatting;
 
             this.Controls.Add(_grid);
 
-            // Nút Đóng
-            GameButton btnClose = new GameButton
-            {
-                Text = "CLOSE",
-                Size = new Size(150, 45),
-                Location = new Point(175, 500),
-                Color1 = Color.DarkRed,
-                Color2 = Color.Maroon,
-                BorderRadius = 20
+            // 3. NÚT ĐÓNG (CyberButton)
+            CyberButton btnClose = new CyberButton("RETURN TO MENU");
+            btnClose.Size = new Size(200, 50);
+            btnClose.Location = new Point(175, 610);
+            btnClose.DefaultColor = Color.FromArgb(40, 20, 20);
+            btnClose.BorderColor = Color.Red;
+            btnClose.HoverColor = Color.FromArgb(80, 20, 20);
+
+            btnClose.Click += (s, e) => {
+                SoundManager.Play("click");
+                this.Close();
             };
-            btnClose.Click += (s, e) => this.Close();
             this.Controls.Add(btnClose);
         }
 
         private void LoadData()
         {
-            var scores = HighScoreManager.LoadScores();
+            var displayList = new List<object>();
 
-            // Fake data nếu chưa có file save (để test hiển thị)
-            if (scores.Count == 0)
+            // 1. Tải dữ liệu thật từ file
+            var realScores = HighScoreManager.LoadScores();
+
+            if (realScores.Count > 0)
             {
-                scores = new System.Collections.Generic.List<PlayerScore>
+                for (int i = 0; i < realScores.Count; i++)
                 {
-                    new PlayerScore { Name = "The Legend", Score = 10000 },
-                    new PlayerScore { Name = "Dragon Slayer", Score = 8500 },
-                    new PlayerScore { Name = "Tower King", Score = 7200 },
-                    new PlayerScore { Name = "Pro Gamer", Score = 6000 },
-                    new PlayerScore { Name = "Rookie 01", Score = 4500 },
-                    new PlayerScore { Name = "NoobMaster", Score = 3000 },
-                    new PlayerScore { Name = "Guest User", Score = 1500 },
-                };
+                    displayList.Add(new
+                    {
+                        Rank = i + 1,
+                        Name = realScores[i].Name,
+                        Score = realScores[i].Score
+                    });
+                }
             }
-
-            // Chuyển đổi dữ liệu hiển thị
-            var displayList = new System.Collections.Generic.List<object>();
-
-            for (int i = 0; i < scores.Count; i++)
+            else
             {
-                displayList.Add(new
-                {
-                    Rank = i + 1,
-                    Name = scores[i].Name,
-                    Score = scores[i].Score
-                    // Đã xóa dòng Date = scores[i].Date
-                });
+                // 2. Nếu chưa có dữ liệu -> Hiển thị Fake Data (Demo)
+                displayList.Add(new { Rank = 1, Name = "CYBER_KING", Score = 999999 });
+                displayList.Add(new { Rank = 2, Name = "DRAGON_SLAYER", Score = 850000 });
+                displayList.Add(new { Rank = 3, Name = "TOWER_GOD", Score = 720000 });
+                displayList.Add(new { Rank = 4, Name = "Pro_Gamer_VN", Score = 500000 });
+                displayList.Add(new { Rank = 5, Name = "Rookie_01", Score = 300000 });
             }
 
             _grid.DataSource = displayList;
+            _grid.ClearSelection();
         }
 
         private void Grid_CellFormatting(object sender, DataGridViewCellFormattingEventArgs e)
@@ -152,24 +132,24 @@ namespace TowerDefense.Forms.Reports
             {
                 DataGridViewRow row = _grid.Rows[e.RowIndex];
 
-                // Rank 1: Vàng
-                if (e.RowIndex == 0)
+                // Tô màu Top 3
+                if (e.RowIndex == 0) // Top 1: Vàng
                 {
                     row.DefaultCellStyle.ForeColor = Color.Gold;
-                    row.DefaultCellStyle.Font = new Font("Segoe UI", 12, FontStyle.Bold);
-                    if (e.ColumnIndex == 1) e.Value = "👑 " + e.Value;
+                    row.DefaultCellStyle.Font = new Font("Consolas", 12, FontStyle.Bold);
+                    // Thêm vương miện nếu chưa có
+                    if (e.ColumnIndex == 1 && e.Value != null && !e.Value.ToString().Contains("👑"))
+                        e.Value = "👑 " + e.Value;
                 }
-                // Rank 2: Bạc
-                else if (e.RowIndex == 1)
+                else if (e.RowIndex == 1) // Top 2: Bạc
                 {
                     row.DefaultCellStyle.ForeColor = Color.Silver;
-                    row.DefaultCellStyle.Font = new Font("Segoe UI", 11, FontStyle.Bold);
+                    row.DefaultCellStyle.Font = new Font("Consolas", 11, FontStyle.Bold);
                 }
-                // Rank 3: Đồng
-                else if (e.RowIndex == 2)
+                else if (e.RowIndex == 2) // Top 3: Đồng
                 {
-                    row.DefaultCellStyle.ForeColor = Color.Chocolate;
-                    row.DefaultCellStyle.Font = new Font("Segoe UI", 11, FontStyle.Bold);
+                    row.DefaultCellStyle.ForeColor = Color.FromArgb(205, 127, 50);
+                    row.DefaultCellStyle.Font = new Font("Consolas", 11, FontStyle.Bold);
                 }
             }
         }

@@ -2,12 +2,12 @@
 using System.Drawing;
 using System.Drawing.Drawing2D;
 using System.Windows.Forms;
-using TowerDefense.Managers;
-using TowerDefense.Utils;
+using TowerDefense.Managers; // <--- QUAN TRỌNG: Để gọi HighScoreManager và SoundManager
+using TowerDefense.Utils;    // <--- QUAN TRỌNG: Để gọi CyberButton
 
 namespace TowerDefense.Forms
 {
-    public partial class ResultForm : Form
+    public partial class ResultForm : CyberFormBase
     {
         public string PlayerName { get; private set; } = "Unknown";
         public bool IsRetry { get; private set; } = false;
@@ -19,95 +19,129 @@ namespace TowerDefense.Forms
         public ResultForm(bool isVictory, int wave, int gold)
         {
             _isVictory = isVictory;
-            _score = (wave * 100) + (gold / 10); // Công thức tính điểm
+            _score = (wave * 100) + (gold / 10);
 
-            InitializeComponent();
+            // Cấu hình Form
+            this.Size = new Size(500, 450);
+            if (lblTitle != null) lblTitle.Visible = false;
+
+            // Âm thanh kết quả
+            if (_isVictory) SoundManager.Play("win");
+            else SoundManager.Play("lose");
+
             SetupUI();
         }
 
-        private void InitializeComponent() { } // Hàm giả
-
         private void SetupUI()
         {
-            this.FormBorderStyle = FormBorderStyle.None;
-            this.StartPosition = FormStartPosition.CenterScreen;
-            this.Size = new Size(500, 400);
-            this.BackColor = _isVictory ? Color.FromArgb(20, 40, 20) : Color.FromArgb(30, 10, 10);
+            Color themeColor = _isVictory ? Color.Gold : Color.Red;
+            string titleText = _isVictory ? "MISSION ACCOMPLISHED" : "MISSION FAILED";
 
-            // Viền Form
-            Color borderColor = _isVictory ? Color.Gold : Color.Red;
-            this.Paint += (s, e) => ControlPaint.DrawBorder(e.Graphics, this.ClientRectangle, borderColor, 4, ButtonBorderStyle.Solid, borderColor, 4, ButtonBorderStyle.Solid, borderColor, 4, ButtonBorderStyle.Solid, borderColor, 4, ButtonBorderStyle.Solid);
-
-            // 1. Tiêu đề
-            Label lblTitle = new Label
+            // 1. TIÊU ĐỀ LỚN
+            Label lblBigTitle = new Label
             {
-                Text = _isVictory ? "VICTORY!" : "DEFEAT",
-                Font = new Font("Arial", 36, FontStyle.Bold),
-                ForeColor = borderColor,
-                AutoSize = true,
-                Location = new Point(_isVictory ? 130 : 145, 30)
+                Text = titleText,
+                Font = new Font("Segoe UI", _isVictory ? 24 : 28, FontStyle.Bold),
+                ForeColor = themeColor,
+                AutoSize = false,
+                TextAlign = ContentAlignment.MiddleCenter,
+                Dock = DockStyle.Top,
+                Height = 100,
+                BackColor = Color.Transparent
             };
-            this.Controls.Add(lblTitle);
+            this.Controls.Add(lblBigTitle);
 
-            // 2. Điểm số
+            // 2. ĐIỂM SỐ
             Label lblScore = new Label
             {
-                Text = $"TOTAL SCORE: {_score}",
-                Font = new Font("Segoe UI", 18, FontStyle.Bold),
+                Text = $"SCORE: {_score:N0}",
+                Font = new Font("Consolas", 20, FontStyle.Bold),
                 ForeColor = Color.White,
-                AutoSize = true,
-                Location = new Point(140, 100)
+                AutoSize = false,
+                TextAlign = ContentAlignment.MiddleCenter,
+                Dock = DockStyle.Top,
+                Height = 50
             };
+            lblScore.BringToFront();
             this.Controls.Add(lblScore);
 
-            // 3. Nhập tên
-            Label lblName = new Label { Text = "Enter Your Name:", ForeColor = Color.Gray, Location = new Point(100, 160), AutoSize = true, Font = new Font("Arial", 10) };
-            this.Controls.Add(lblName);
+            // 3. NHẬP TÊN
+            int inputY = 180;
+            Label lblInput = new Label
+            {
+                Text = "ENTER OPERATOR NAME:",
+                ForeColor = Color.Gray,
+                Font = new Font("Segoe UI", 10),
+                AutoSize = true,
+                Location = new Point(100, inputY)
+            };
+            this.Controls.Add(lblInput);
 
             _txtName = new TextBox
             {
-                Location = new Point(100, 185),
-                Size = new Size(300, 35),
-                Font = new Font("Arial", 14),
-                BackColor = Color.FromArgb(50, 50, 60),
-                ForeColor = Color.White,
+                Location = new Point(100, inputY + 25),
+                Size = new Size(300, 30),
+                Font = new Font("Consolas", 14),
+                BackColor = Color.FromArgb(40, 40, 50),
+                ForeColor = themeColor,
                 BorderStyle = BorderStyle.FixedSingle,
-                TextAlign = HorizontalAlignment.Center
+                TextAlign = HorizontalAlignment.Center,
+                MaxLength = 15
             };
             this.Controls.Add(_txtName);
 
-            // 4. Các nút bấm
-            int btnY = 280;
+            // 4. CÁC NÚT BẤM
+            int btnY = 320;
 
-            // Nút Save & Menu
-            GameButton btnMenu = new GameButton
-            {
-                Text = "MAIN MENU",
-                Location = new Point(50, btnY),
-                Size = new Size(180, 50),
-                Color1 = Color.Gray,
-                Color2 = Color.Black
+            // Nút Menu
+            CyberButton btnMenu = new CyberButton("MAIN MENU");
+            btnMenu.Size = new Size(180, 50);
+            btnMenu.Location = new Point(50, btnY);
+            btnMenu.DefaultColor = Color.FromArgb(30, 30, 30);
+            btnMenu.BorderColor = Color.Gray;
+            btnMenu.Click += (s, e) => {
+                SoundManager.Play("click");
+                SaveAndClose(false);
             };
-            btnMenu.Click += (s, e) => { SaveAndClose(false); };
             this.Controls.Add(btnMenu);
 
-            // Nút Retry (Chơi lại)
-            GameButton btnRetry = new GameButton
-            {
-                Text = "RETRY",
-                Location = new Point(270, btnY),
-                Size = new Size(180, 50),
-                Color1 = _isVictory ? Color.Green : Color.OrangeRed,
-                Color2 = _isVictory ? Color.DarkGreen : Color.Maroon
+            // Nút Retry
+            CyberButton btnRetry = new CyberButton("RETRY MISSION");
+            btnRetry.Size = new Size(180, 50);
+            btnRetry.Location = new Point(270, btnY);
+            btnRetry.DefaultColor = _isVictory ? Color.FromArgb(20, 40, 20) : Color.FromArgb(40, 20, 20);
+            btnRetry.BorderColor = themeColor;
+            btnRetry.HoverColor = _isVictory ? Color.Green : Color.Maroon;
+            btnRetry.Click += (s, e) => {
+                SoundManager.Play("click");
+                SaveAndClose(true);
             };
-            btnRetry.Click += (s, e) => { SaveAndClose(true); };
             this.Controls.Add(btnRetry);
+        }
+
+        protected override void OnPaint(PaintEventArgs e)
+        {
+            base.OnPaint(e);
+            Color borderColor = _isVictory ? Color.Gold : Color.Red;
+            using (Pen p = new Pen(borderColor, 3))
+            {
+                e.Graphics.DrawRectangle(p, 0, 0, Width - 1, Height - 1);
+            }
         }
 
         private void SaveAndClose(bool retry)
         {
             if (!string.IsNullOrWhiteSpace(_txtName.Text))
+            {
                 PlayerName = _txtName.Text;
+
+                // Gọi hàm lưu điểm từ HighScoreManager
+                try
+                {
+                    HighScoreManager.SaveScore(PlayerName, _score);
+                }
+                catch { }
+            }
 
             IsRetry = retry;
             this.DialogResult = DialogResult.OK;

@@ -1,47 +1,86 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using Newtonsoft.Json;
 
 namespace TowerDefense.Managers
 {
+    // Class đại diện cho 1 người chơi trong bảng xếp hạng
     public class PlayerScore
     {
         public string Name { get; set; }
-        public int Score { get; set; } // Score = (Tiền còn lại + Máu còn lại * 10)
-        public string Date { get; set; }
+        public int Score { get; set; }
     }
 
     public static class HighScoreManager
     {
-        private static string _filePath = "highscores.json";
+        // Tên file lưu điểm (nằm cùng thư mục với file .exe của game)
+        private static string _filePath = "highscores.txt";
 
-        public static void SaveScore(string playerName, int score)
+        // Hàm lưu điểm mới
+        public static void SaveScore(string name, int score)
         {
+            // 1. Tải danh sách cũ lên
             List<PlayerScore> scores = LoadScores();
 
-            // Thêm điểm mới
-            scores.Add(new PlayerScore
-            {
-                Name = playerName,
-                Score = score,
-                Date = System.DateTime.Now.ToString("dd/MM/yyyy HH:mm")
-            });
+            // 2. Thêm điểm mới
+            scores.Add(new PlayerScore { Name = name, Score = score });
 
-            // Sắp xếp giảm dần và lấy Top 10
-            scores = scores.OrderByDescending(s => s.Score).Take(10).ToList();
+            // 3. Sắp xếp giảm dần (Điểm cao lên đầu)
+            scores = scores.OrderByDescending(s => s.Score).ToList();
 
-            // Lưu lại file
-            string json = JsonConvert.SerializeObject(scores, Formatting.Indented);
-            File.WriteAllText(_filePath, json);
+            // 4. Giới hạn chỉ lưu Top 10 người cao nhất
+            if (scores.Count > 10) scores = scores.Take(10).ToList();
+
+            // 5. Ghi đè lại vào file text
+            SaveToFile(scores);
         }
 
+        // Hàm đọc điểm từ file
         public static List<PlayerScore> LoadScores()
         {
-            if (!File.Exists(_filePath)) return new List<PlayerScore>();
+            var list = new List<PlayerScore>();
 
-            string json = File.ReadAllText(_filePath);
-            return JsonConvert.DeserializeObject<List<PlayerScore>>(json) ?? new List<PlayerScore>();
+            // Kiểm tra xem file có tồn tại không
+            if (File.Exists(_filePath))
+            {
+                try
+                {
+                    string[] lines = File.ReadAllLines(_filePath);
+                    foreach (string line in lines)
+                    {
+                        // Định dạng file: Tên|Điểm
+                        string[] parts = line.Split('|');
+                        if (parts.Length == 2)
+                        {
+                            if (int.TryParse(parts[1], out int s))
+                            {
+                                list.Add(new PlayerScore { Name = parts[0], Score = s });
+                            }
+                        }
+                    }
+                }
+                catch { }
+            }
+
+            // Sắp xếp lại lần nữa cho chắc chắn
+            return list.OrderByDescending(s => s.Score).ToList();
+        }
+
+        // Helper ghi file
+        private static void SaveToFile(List<PlayerScore> scores)
+        {
+            try
+            {
+                var lines = new List<string>();
+                foreach (var s in scores)
+                {
+                    // Lưu dạng: Tên|Điểm
+                    lines.Add($"{s.Name}|{s.Score}");
+                }
+                File.WriteAllLines(_filePath, lines);
+            }
+            catch { }
         }
     }
 }
