@@ -64,7 +64,7 @@ namespace TowerDefense.Forms
             int btnX = (this.Width - 260) / 2;
 
             // PLAY GAME
-            var btnPlay = CreateCyberButton("▶ INITIATE GAME", btnX, startY, true);
+            var btnPlay = CreateCyberButton("▶ START GAME", btnX, startY, true);
             btnPlay.Click += (s, e) => {
                 SoundManager.Play("click");
                 this.Hide();
@@ -74,14 +74,14 @@ namespace TowerDefense.Forms
             };
 
             // SETTINGS
-            var btnSettings = CreateCyberButton("⚙ SYSTEM CONFIG", btnX, startY + gap);
+            var btnSettings = CreateCyberButton("⚙ SETTINGS", btnX, startY + gap);
             btnSettings.Click += (s, e) => {
                 SoundManager.Play("click");
                 new SettingsForm().ShowDialog();
             };
 
             // SHOP
-            var btnShop = CreateCyberButton("🛒 ARMORY & SHOP", btnX, startY + gap * 2);
+            var btnShop = CreateCyberButton("🛒 SHOP & UPGRAGE", btnX, startY + gap * 2);
             btnShop.Click += (s, e) => {
                 SoundManager.Play("click");
                 this.Hide();
@@ -90,23 +90,23 @@ namespace TowerDefense.Forms
             };
 
             // HIGH SCORES
-            var btnScore = CreateCyberButton("🏆 HALL OF FAME", btnX, startY + gap * 3);
+            var btnScore = CreateCyberButton("🏆 HIGHSCORE", btnX, startY + gap * 3);
             btnScore.Click += (s, e) => { SoundManager.Play("click"); new HighScoreForm().ShowDialog(); };
 
             // BESTIARY
-            var btnBestiary = CreateCyberButton("👹 ENEMY DATABASE", btnX, startY + gap * 4);
+            var btnBestiary = CreateCyberButton("👹 BESTIARY", btnX, startY + gap * 4);
             btnBestiary.Click += (s, e) => { SoundManager.Play("click"); new BestiaryForm().ShowDialog(); };
 
             // HISTORY
-            var btnHistory = CreateCyberButton("📜 BATTLE LOGS", btnX, startY + gap * 5);
+            var btnHistory = CreateCyberButton("📜 BATTLE HISTORY ", btnX, startY + gap * 5);
             btnHistory.Click += (s, e) => { SoundManager.Play("click"); new HistoryForm().ShowDialog(); };
 
             // ABOUT
-            var btnAbout = CreateCyberButton("ℹ ABOUT SYSTEM", btnX, startY + gap * 6);
+            var btnAbout = CreateCyberButton("ℹ CREDIT", btnX, startY + gap * 6);
             btnAbout.Click += (s, e) => { SoundManager.Play("click"); new AboutForm().ShowDialog(); };
 
             // EXIT
-            var btnExit = CreateCyberButton("🚪 TERMINATE", btnX, startY + gap * 7);
+            var btnExit = CreateCyberButton("🚪 EXIT GAME", btnX, startY + gap * 7);
             btnExit.ForeColor = Color.Red;
             btnExit.Click += (s, e) => Application.Exit();
 
