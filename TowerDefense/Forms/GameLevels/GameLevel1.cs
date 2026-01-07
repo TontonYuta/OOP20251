@@ -36,11 +36,12 @@ namespace TowerDefense.Forms.GameLevels
         private bool _isHoveringBoard; // Chuột có đang ở trong vùng bàn cờ không?
 
         // --- UI NÂNG CẤP ĐỘNG (Dùng bên Input.cs) ---
-        private Panel _pnlTowerActions;
+        private Button _btnCloseMenu; // Thêm nút đóng
         private Label _lblTowerInfo;
         private Button _btnUpgrade;
         private Button _btnSell;
         private Tower _selectedTower;
+        private Rectangle _upgradeMenuRect;
 
         // =========================================================
         // 2. CONSTRUCTOR & KHỞI TẠO

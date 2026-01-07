@@ -2,14 +2,14 @@
   "ExpandedNodes": [
     "",
     "\\TowerDefense",
-    "\\TowerDefense\\Assets",
-    "\\TowerDefense\\Components",
-    "\\TowerDefense\\Configs",
-    "\\TowerDefense\\Core",
-    "\\TowerDefense\\Data",
+    "\\TowerDefense\\Entities",
+    "\\TowerDefense\\Entities\\Enemies",
+    "\\TowerDefense\\Entities\\Towers",
+    "\\TowerDefense\\Forms",
+    "\\TowerDefense\\Forms\\GameLevels",
+    "\\TowerDefense\\Forms\\Reports",
     "\\TowerDefense\\Managers",
-    "\\TowerDefense\\Properties",
-    "\\TowerDefense\\Utils"
+    "\\TowerDefense\\obj"
   ],
   "SelectedNode": "\\TowerDefense\\Forms\\GameLevels\\GameLevel1.cs",
   "PreviewInSolutionExplorer": false

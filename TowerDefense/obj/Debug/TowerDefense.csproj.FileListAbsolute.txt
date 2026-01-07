@@ -23,3 +23,16 @@ C:\Users\ADMIN\source\repos\TowerDefenseGame\TowerDefense\obj\Debug\TowerDefense
 C:\Users\ADMIN\source\repos\TowerDefenseGame\TowerDefense\obj\Debug\TowerDef.818BD018.Up2Date
 C:\Users\ADMIN\source\repos\TowerDefenseGame\TowerDefense\obj\Debug\TowerDefense.exe
 C:\Users\ADMIN\source\repos\TowerDefenseGame\TowerDefense\obj\Debug\TowerDefense.pdb
+D:\DOWNLOAD\Temp\Test\TowerDefenseGame\TowerDefense\bin\Debug\TowerDefense.exe.config
+D:\DOWNLOAD\Temp\Test\TowerDefenseGame\TowerDefense\bin\Debug\TowerDefense.exe
+D:\DOWNLOAD\Temp\Test\TowerDefenseGame\TowerDefense\bin\Debug\TowerDefense.pdb
+D:\DOWNLOAD\Temp\Test\TowerDefenseGame\TowerDefense\bin\Debug\Newtonsoft.Json.dll
+D:\DOWNLOAD\Temp\Test\TowerDefenseGame\TowerDefense\bin\Debug\Newtonsoft.Json.xml
+D:\DOWNLOAD\Temp\Test\TowerDefenseGame\TowerDefense\obj\Debug\TowerDefense.csproj.AssemblyReference.cache
+D:\DOWNLOAD\Temp\Test\TowerDefenseGame\TowerDefense\obj\Debug\TowerDefense.exe.config
+D:\DOWNLOAD\Temp\Test\TowerDefenseGame\TowerDefense\obj\Debug\TowerDefense.Properties.Resources.resources
+D:\DOWNLOAD\Temp\Test\TowerDefenseGame\TowerDefense\obj\Debug\TowerDefense.csproj.GenerateResource.cache
+D:\DOWNLOAD\Temp\Test\TowerDefenseGame\TowerDefense\obj\Debug\TowerDefense.csproj.CoreCompileInputs.cache
+D:\DOWNLOAD\Temp\Test\TowerDefenseGame\TowerDefense\obj\Debug\TowerDef.818BD018.Up2Date
+D:\DOWNLOAD\Temp\Test\TowerDefenseGame\TowerDefense\obj\Debug\TowerDefense.exe
+D:\DOWNLOAD\Temp\Test\TowerDefenseGame\TowerDefense\obj\Debug\TowerDefense.pdb

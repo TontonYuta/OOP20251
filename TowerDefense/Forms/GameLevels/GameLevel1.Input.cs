@@ -110,43 +110,26 @@ namespace TowerDefense.Forms.GameLevels
         }
 
         // --- TẠO BẢNG NÂNG CẤP (UPGRADE PANEL) ---
+        // --- 1. SỬA HÀM KHỞI TẠO UI ---
         private void InitializeDynamicControls()
         {
-            _pnlTowerActions = new Panel { Size = new Size(200, 110), BackColor = Color.Transparent, Visible = false };
+            // Thay vì tạo Panel, ta tạo các control và add thẳng vào Form
+            // Mặc định Visible = false (Ẩn đi)
 
-            _pnlTowerActions.Paint += (s, e) =>
-            {
-                Graphics g = e.Graphics;
-                g.SmoothingMode = System.Drawing.Drawing2D.SmoothingMode.AntiAlias;
-                Rectangle r = _pnlTowerActions.ClientRectangle; r.Width--; r.Height--;
-                using (System.Drawing.Drawing2D.GraphicsPath path = new System.Drawing.Drawing2D.GraphicsPath())
-                {
-                    int rad = 20;
-                    path.AddArc(r.X, r.Y, rad, rad, 180, 90);
-                    path.AddArc(r.Right - rad, r.Y, rad, rad, 270, 90);
-                    path.AddArc(r.Right - rad, r.Bottom - rad, rad, rad, 0, 90);
-                    path.AddArc(r.X, r.Bottom - rad, rad, rad, 90, 90);
-                    path.CloseFigure();
-                    using (SolidBrush b = new SolidBrush(Color.FromArgb(220, 20, 20, 30))) g.FillPath(b, path);
-                    using (Pen p = new Pen(Color.White, 1)) g.DrawPath(p, path);
-                }
-            };
-            this.Controls.Add(_pnlTowerActions);
+            _lblTowerInfo = new Label { ForeColor = Color.White, AutoSize = true, BackColor = Color.Transparent, Font = new Font("Arial", 9, FontStyle.Bold), Visible = false };
+            this.Controls.Add(_lblTowerInfo);
 
-            _lblTowerInfo = new Label { ForeColor = Color.White, Location = new Point(10, 10), AutoSize = true, Text = "Info", Font = new Font("Arial", 9, FontStyle.Bold) };
-            _pnlTowerActions.Controls.Add(_lblTowerInfo);
-
-            _btnUpgrade = new Button { Text = "UPGRADE", Location = new Point(10, 40), Size = new Size(80, 40), BackColor = Color.LightGreen, FlatStyle = FlatStyle.Flat };
+            _btnUpgrade = new Button { Text = "UPGRADE", Size = new Size(80, 40), BackColor = Color.LightGreen, FlatStyle = FlatStyle.Flat, Visible = false };
             _btnUpgrade.Click += (s, e) => PerformUpgrade();
-            _pnlTowerActions.Controls.Add(_btnUpgrade);
+            this.Controls.Add(_btnUpgrade);
 
-            _btnSell = new Button { Text = "SELL", Location = new Point(100, 40), Size = new Size(80, 40), BackColor = Color.Red, ForeColor = Color.White, FlatStyle = FlatStyle.Flat };
+            _btnSell = new Button { Text = "SELL", Size = new Size(80, 40), BackColor = Color.Red, ForeColor = Color.White, FlatStyle = FlatStyle.Flat, Visible = false };
             _btnSell.Click += (s, e) => PerformSell();
-            _pnlTowerActions.Controls.Add(_btnSell);
+            this.Controls.Add(_btnSell);
 
-            Button btnClose = new Button { Text = "x", Location = new Point(175, 5), Size = new Size(20, 20), BackColor = Color.Red, ForeColor = Color.White, FlatStyle = FlatStyle.Flat };
-            btnClose.Click += (s, e) => DeselectTower();
-            _pnlTowerActions.Controls.Add(btnClose);
+            _btnCloseMenu = new Button { Text = "x", Size = new Size(20, 20), BackColor = Color.Red, ForeColor = Color.White, FlatStyle = FlatStyle.Flat, Visible = false };
+            _btnCloseMenu.Click += (s, e) => DeselectTower();
+            this.Controls.Add(_btnCloseMenu);
         }
 
         // =========================================================
@@ -293,6 +276,8 @@ namespace TowerDefense.Forms.GameLevels
         // =========================================================
         // 4. LOGIC NÂNG CẤP / BÁN
         // =========================================================
+
+        // --- 2. SỬA HÀM HIỆN MENU KHI CLICK THÁP ---
         private void SelectTowerOnBoard(Tower tower)
         {
             _selectedTower = tower;
@@ -302,17 +287,38 @@ namespace TowerDefense.Forms.GameLevels
             // Kẹp vào màn hình Map (X < 800)
             if (pX + 200 > 800) pX = (int)(tower.X * _scaleFactor) - 225;
             if (pY < 0) pY = 0;
+            if (pY + 110 > 600) pY = 600 - 110;
 
-            _pnlTowerActions.Location = new Point(pX, pY);
-            _pnlTowerActions.Visible = true;
-            _pnlTowerActions.BringToFront();
+            // Lưu vị trí khung nền để bên Render vẽ
+            _upgradeMenuRect = new Rectangle(pX, pY, 200, 110);
+
+            // Cập nhật vị trí các nút bấm theo vị trí khung
+            _lblTowerInfo.Location = new Point(pX + 10, pY + 10);
+            _btnUpgrade.Location = new Point(pX + 10, pY + 40);
+            _btnSell.Location = new Point(pX + 100, pY + 40);
+            _btnCloseMenu.Location = new Point(pX + 175, pY + 5);
+
+            // Hiện các nút lên và đưa lên trên cùng
+            _lblTowerInfo.Visible = true; _lblTowerInfo.BringToFront();
+            _btnUpgrade.Visible = true; _btnUpgrade.BringToFront();
+            _btnSell.Visible = true; _btnSell.BringToFront();
+            _btnCloseMenu.Visible = true; _btnCloseMenu.BringToFront();
+
             UpdateUpgradeUI();
         }
 
+        // --- 3. SỬA HÀM ẨN MENU ---
         private void DeselectTower()
         {
-            _pnlTowerActions.Visible = false;
             _selectedTower = null;
+            // Ẩn tất cả nút đi
+            if (_lblTowerInfo != null) _lblTowerInfo.Visible = false;
+            if (_btnUpgrade != null) _btnUpgrade.Visible = false;
+            if (_btnSell != null) _btnSell.Visible = false;
+            if (_btnCloseMenu != null) _btnCloseMenu.Visible = false;
+
+            // Xóa vùng vẽ (đặt về rỗng)
+            _upgradeMenuRect = Rectangle.Empty;
         }
 
         private void UpdateUpgradeUI()

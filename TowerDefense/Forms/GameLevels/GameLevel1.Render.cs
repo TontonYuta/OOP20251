@@ -141,6 +141,7 @@ namespace TowerDefense.Forms.GameLevels
 
             // 6. Vẽ Giao diện (HUD & Control Panel)
             DrawGlassHUD(g);
+            DrawUpgradeMenu(g);
         }
 
         // =========================================================
@@ -245,5 +246,39 @@ namespace TowerDefense.Forms.GameLevels
 
             this.Close();
         }
+
+        // --- THÊM HÀM MỚI NÀY VÀO CUỐI FILE ---
+        private void DrawUpgradeMenu(Graphics g)
+        {
+            // Chỉ vẽ khi có tháp đang chọn
+            if (_selectedTower != null && !_upgradeMenuRect.IsEmpty)
+            {
+                g.SmoothingMode = SmoothingMode.AntiAlias;
+
+                Rectangle r = _upgradeMenuRect;
+
+                // Vẽ hình bo tròn (Code copy từ logic Panel cũ của bạn)
+                using (GraphicsPath path = new GraphicsPath())
+                {
+                    int rad = 20;
+                    path.AddArc(r.X, r.Y, rad, rad, 180, 90);
+                    path.AddArc(r.Right - rad, r.Y, rad, rad, 270, 90);
+                    path.AddArc(r.Right - rad, r.Bottom - rad, rad, rad, 0, 90);
+                    path.AddArc(r.X, r.Bottom - rad, rad, rad, 90, 90);
+                    path.CloseFigure();
+
+                    // Vẽ nền bán trong suốt (Màu tối)
+                    using (SolidBrush b = new SolidBrush(Color.FromArgb(220, 20, 20, 30)))
+                        g.FillPath(b, path);
+
+                    // Vẽ viền trắng
+                    using (Pen p = new Pen(Color.White, 1))
+                        g.DrawPath(p, path);
+                }
+
+                g.SmoothingMode = SmoothingMode.None;
+            }
+        }
+
     }
 }

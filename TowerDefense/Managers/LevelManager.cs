@@ -36,14 +36,14 @@ namespace TowerDefense.Managers
                 case 1: // MAP 1: Đường thẳng (The Line)
                     Theme = "Grass";
                     path.Add(new Point(-40, G(7)));   // Vào từ trái (Hàng 7)
-                    path.Add(new Point(840, G(7)));   // Ra bên phải
+                    path.Add(new Point(780, G(7)));   // Ra bên phải
                     break;
 
                 case 2: // MAP 2: Góc Vuông (The Corner)
                     Theme = "Grass";
                     path.Add(new Point(G(4), -40));   // Vào từ trên (Cột 4)
                     path.Add(new Point(G(4), G(10))); // Xuống hàng 10
-                    path.Add(new Point(840, G(10)));  // Rẽ phải ra ngoài
+                    path.Add(new Point(780, G(10)));  // Rẽ phải ra ngoài
                     break;
 
                 case 3: // MAP 3: Chữ S (The Snake)
@@ -115,20 +115,20 @@ namespace TowerDefense.Managers
                     path.Add(new Point(G(9), G(10)));
                     path.Add(new Point(G(14), G(10)));
                     path.Add(new Point(G(14), G(14)));
-                    path.Add(new Point(840, G(14)));
+                    path.Add(new Point(780, G(14)));
                     break;
 
                 // =========================================================
                 // THEME: LAVA (NHAM THẠCH) - ĐỊA NGỤC
                 // =========================================================
                 case 9: // MAP 9: Đồng Hồ Cát (Hourglass)
-                    Theme = "Stone"; // Hoặc Lava
+                    Theme = "Snow"; // Hoặc Lava
                     path.Add(new Point(-40, G(1)));    // Vào trái trên
                     path.Add(new Point(G(18), G(1)));  // Sang phải trên
                     path.Add(new Point(G(18), G(5)));  // Xuống giữa
                     path.Add(new Point(G(2), G(5)));   // Sang trái giữa
                     path.Add(new Point(G(2), G(12)));  // Xuống dưới
-                    path.Add(new Point(840, G(12)));   // Ra phải dưới
+                    path.Add(new Point(780, G(12)));   // Ra phải dưới
                     break;
 
                 case 10: // MAP 10: ĐƯỜNG DÀI NHẤT (The Maze)
