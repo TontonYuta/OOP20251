@@ -67,22 +67,46 @@ namespace TowerDefense.Forms.GameLevels
                 {
                     g.DrawLines(_pathPen, path.ToArray());
 
-                    // Vẽ điểm Đầu (Spawn)
+                    // ---------------------------------------------------------
+                    // 1. VẼ ĐIỂM XUẤT PHÁT (SPAWN) - ĐÃ SỬA ĐỂ DÙNG ẢNH
+                    // ---------------------------------------------------------
                     Point start = path[0];
                     int sx = Math.Max(25, Math.Min(775, start.X));
                     int sy = Math.Max(25, Math.Min(575, start.Y));
-                    g.FillEllipse(Brushes.DarkSlateGray, sx - 25, sy - 25, 50, 50);
-                    g.DrawString("SPAWN", _startFont, Brushes.White, sx - 22, sy - 6);
 
-                    // Vẽ điểm Cuối (Base)
+                    // Thử lấy ảnh Spawn
+                    Image spawnImg = ResourceManager.GetImage("Spawn");
+
+                    if (spawnImg != null)
+                    {
+                        // Vẽ ảnh (Kích thước 64x64, căn giữa)
+                        g.DrawImage(spawnImg, sx - 32, sy - 32, 64, 64);
+                    }
+                    else
+                    {
+                        // Fallback: Vẽ hình tròn xám nếu chưa có ảnh
+                        g.FillEllipse(Brushes.DarkSlateGray, sx - 25, sy - 25, 50, 50);
+                        g.DrawString("SPAWN", _startFont, Brushes.White, sx - 22, sy - 6);
+                    }
+
+                    // ---------------------------------------------------------
+                    // 2. VẼ ĐIỂM KẾT THÚC (BASE)
+                    // ---------------------------------------------------------
                     Point end = path[path.Count - 1];
                     int ex = Math.Max(32, Math.Min(768, end.X));
                     int ey = Math.Max(32, Math.Min(568, end.Y));
 
+                    // Thử lấy ảnh Base
                     Image baseImg = ResourceManager.GetImage("Base");
-                    if (baseImg != null) g.DrawImage(baseImg, ex - 32, ey - 32, 64, 64);
+
+                    if (baseImg != null)
+                    {
+                        // Vẽ ảnh (Kích thước 64x64, căn giữa)
+                        g.DrawImage(baseImg, ex - 32, ey - 32, 64, 64);
+                    }
                     else
                     {
+                        // Fallback: Vẽ hình vuông tím nếu chưa có ảnh
                         g.FillRectangle(Brushes.Purple, ex - 30, ey - 30, 60, 60);
                         g.DrawString("BASE", _startFont, Brushes.White, ex - 18, ey - 6);
                     }
