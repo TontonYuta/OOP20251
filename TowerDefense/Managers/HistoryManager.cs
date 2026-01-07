@@ -17,30 +17,45 @@ namespace TowerDefense.Managers
     {
         private static string _filePath = "history.json";
 
-        public static void SaveLog(bool isVictory, int wave)
+        // Thêm tham số levelId để tránh bị hardcode
+        public static void SaveLog(bool isVictory, int wave, int levelId)
         {
             List<MatchLog> logs = LoadLogs();
 
             logs.Add(new MatchLog
             {
-                Date = DateTime.Now.ToString("yyyy-MM-dd HH:mm"),
-                MapName = "Level 1", // Tạm hardcode, sau này lấy từ GameManager
+                Date = DateTime.Now.ToString("dd/MM/yyyy HH:mm"),
+                MapName = $"Level {levelId}", // Không còn hardcode "Level 1"
                 Result = isVictory ? "VICTORY" : "DEFEAT",
                 WaveReached = wave
             });
 
-            // Chỉ lưu 50 trận gần nhất
+            // Chỉ giữ 50 trận gần nhất, xóa bớt nếu vượt quá
             if (logs.Count > 50) logs.RemoveAt(0);
 
-            string json = JsonConvert.SerializeObject(logs, Formatting.Indented);
-            File.WriteAllText(_filePath, json);
+            try
+            {
+                string json = JsonConvert.SerializeObject(logs, Formatting.Indented);
+                File.WriteAllText(_filePath, json);
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine("Lỗi lưu lịch sử: " + ex.Message);
+            }
         }
 
         public static List<MatchLog> LoadLogs()
         {
             if (!File.Exists(_filePath)) return new List<MatchLog>();
-            string json = File.ReadAllText(_filePath);
-            return JsonConvert.DeserializeObject<List<MatchLog>>(json) ?? new List<MatchLog>();
+            try
+            {
+                string json = File.ReadAllText(_filePath);
+                return JsonConvert.DeserializeObject<List<MatchLog>>(json) ?? new List<MatchLog>();
+            }
+            catch
+            {
+                return new List<MatchLog>();
+            }
         }
     }
 }

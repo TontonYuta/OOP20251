@@ -95,10 +95,14 @@ namespace TowerDefense.Forms.GameLevels
         // =========================================================
         // 3. GAME LOOP (TRÁI TIM CỦA GAME)
         // =========================================================
+        // =========================================================
+        // 3. GAME LOOP (TRÁI TIM CỦA GAME)
+        // =========================================================
         private void GameLoop(object sender, EventArgs e)
         {
             if (_isPaused) return;
 
+            // --- A. QUẢN LÝ THỜI GIAN (DeltaTime) ---
             if (!_sw.IsRunning)
             {
                 _sw.Start();
@@ -109,71 +113,107 @@ namespace TowerDefense.Forms.GameLevels
             float dt = (now - _lastMs) / 1000f;
             _lastMs = now;
 
-            // chống dt quá lớn khi bị khựng
-            if (dt > 0.05f) dt = 0.05f;
+            if (dt > 0.05f) dt = 0.05f; // Chống lag giật
 
+            // --- B. CẬP NHẬT LOGIC (GameManager) ---
             GameManager.Instance.Update(dt);
 
-            // B. Logic Hiệu ứng Màn hình đỏ (Khi mất máu)
+            // --- C. KIỂM TRA MẤT MÁU & HIỆU ỨNG HÀNH ĐỘNG ---
             if (GameManager.Instance.PlayerLives < _lastLives)
             {
                 _hurtTimer = 10;
                 _lastLives = GameManager.Instance.PlayerLives;
-                SoundManager.Play("lose");
+                SoundManager.Play("lose"); // Tiếng mất mạng
             }
             if (_hurtTimer > 0) _hurtTimer--;
 
-            // C. Kiểm tra Chiến Thắng (Victory)
-            if (GameManager.Instance.IsVictory)
+            // --- D. KIỂM TRA ĐIỀU KIỆN KẾT THÚC (QUAN TRỌNG) ---
+
+            // 1. Kiểm tra THUA TRẬN (Mạng về 0)
+            if (GameManager.Instance.PlayerLives <= 0)
             {
-                _gameTimer.Stop();
-                // Hiện Form chiến thắng
-                using (var vicForm = new VictoryForm(
-                    GameManager.Instance.LevelMgr.CurrentLevelId,
-                    GameManager.Instance.PlayerLives, 20))
-                {
-                    vicForm.ShowDialog();
-                }
-                this.Close(); // Về menu sau khi đóng bảng thắng
+                _gameTimer.Stop(); // Dừng game ngay lập tức
+                _sw.Stop();
+                ShowResultForm(false); // Hiện bảng Defeat
                 return;
             }
 
-            // D. Cập nhật trạng thái nút Start/Auto Wave
+            // 2. Kiểm tra CHIẾN THẮNG
+            if (GameManager.Instance.IsVictory)
+            {
+                _gameTimer.Stop();
+                _sw.Stop();
+                ShowResultForm(true); // Hiện bảng Victory
+                return;
+            }
+
+            // --- E. UI & RENDER ---
             UpdateWaveButtonState();
-
-            // E. Vẽ lại màn hình (Sẽ gọi hàm OnPaint bên file Render.cs)
-            this.Invalidate();
+            this.Invalidate(); // Vẽ lại màn hình
         }
-
-        // --- HÀM XỬ LÝ KẾT QUẢ MỚI ---
+        // =========================================================
+        // 4. XỬ LÝ KẾT QUẢ (THẮNG / THUA)
+        // =========================================================
         private void ShowResultForm(bool isVictory)
         {
-            // Âm thanh
+            // 1. Dừng Timer ngay lập tức để chặn quái đi tiếp (fix lỗi mạng âm)
+            _gameTimer.Stop();
+            _sw.Stop();
+
+            // 2. Âm thanh thông báo
             if (isVictory) SoundManager.Play("win");
             else SoundManager.Play("lose");
 
-            // Hiện Form Kết Quả
+            // 3. Hiện Form Kết Quả (ResultForm)
             using (var resultForm = new ResultForm(isVictory,
                 GameManager.Instance.WaveMgr.CurrentWave,
                 GameManager.Instance.PlayerMoney))
             {
+                // Hiển thị dạng Dialog để chặn mọi thao tác phía sau
                 if (resultForm.ShowDialog() == DialogResult.OK)
                 {
-                    // Lưu điểm
-                    HighScoreManager.SaveScore(resultForm.PlayerName, (GameManager.Instance.PlayerMoney / 10) + (GameManager.Instance.WaveMgr.CurrentWave * 100));
-                    HistoryManager.SaveLog(isVictory, GameManager.Instance.WaveMgr.CurrentWave);
+                    // --- LƯU TRỮ DỮ LIỆU (CHỈ LƯU TẠI ĐÂY) ---
+                    try
+                    {
+                        // Lấy thông tin từ GameManager
+                        int currentLevel = GameManager.Instance.LevelMgr.CurrentLevelId;
+                        int currentWave = GameManager.Instance.WaveMgr.CurrentWave;
+                        string pName = string.IsNullOrWhiteSpace(resultForm.PlayerName) ? "Unknown" : resultForm.PlayerName;
 
+                        // Tính điểm tổng hợp
+                        int finalScore = (GameManager.Instance.PlayerMoney / 10) + (currentWave * 100);
+
+                        // Lưu vào Ranking
+                        HighScoreManager.SaveScore(pName, finalScore);
+
+                        // FIX LỖI MAP AUTO 1: Truyền currentLevel vào đây
+                        HistoryManager.SaveLog(isVictory, currentWave, currentLevel);
+                    }
+                    catch { /* Bỏ qua nếu lỗi file lưu trữ */ }
+
+                    // --- XỬ LÝ SAU KẾT QUẢ ---
                     if (resultForm.IsRetry)
                     {
-                        // Chơi lại (Reset Game)
+                        // A. Reset Logic trong GameManager
                         GameManager.Instance.StartGame(GameManager.Instance.LevelMgr.CurrentLevelId);
+
+                        // B. FIX LỖI AUTO WAVE: Ép trạng thái về OFF và cập nhật UI
+                        GameManager.Instance.IsAutoWave = false;
+                        UpdateWaveButtonState(); // Hàm này sẽ đổi màu nút về Next Wave thủ công
+
+                        // C. Reset trạng thái UI Level
                         _lastLives = GameManager.Instance.PlayerLives;
-                        SelectTower(-1);
+                        _hurtTimer = 0;
+                        SelectTower(-1); // Bỏ chọn tháp đang cầm
+
+                        // D. Khởi động lại đồng hồ và vòng lặp
+                        _sw.Reset();
+                        _lastMs = 0;
                         _gameTimer.Start();
                     }
                     else
                     {
-                        // Về Menu
+                        // Đóng Form game để về Menu chính
                         this.Close();
                     }
                 }

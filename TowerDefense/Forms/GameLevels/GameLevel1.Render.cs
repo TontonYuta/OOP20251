@@ -242,7 +242,6 @@ namespace TowerDefense.Forms.GameLevels
 
             int score = (GameManager.Instance.PlayerMoney / 10) + (GameManager.Instance.WaveMgr.CurrentWave * 100);
             Managers.HighScoreManager.SaveScore(name, score);
-            Managers.HistoryManager.SaveLog(false, GameManager.Instance.WaveMgr.CurrentWave);
 
             this.Close();
         }

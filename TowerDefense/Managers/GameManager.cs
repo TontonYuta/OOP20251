@@ -123,6 +123,9 @@ namespace TowerDefense.Managers
             }
         }
 
+        // Trong GameManager.cs
+        public event Action OnDefeat; // Sự kiện thua trận
+
         private void UpdateEnemies(float dt)
         {
             for (int i = Enemies.Count - 1; i >= 0; i--)
@@ -130,32 +133,24 @@ namespace TowerDefense.Managers
                 var enemy = Enemies[i];
                 enemy.Update(dt);
 
-                // --- QUÁI TẤN CÔNG TRỤ ---
-                // Gọi hàm TryAttackNearbyTower (đã có trong Enemy.cs)
-                var projectile = enemy.TryAttackNearbyTower(Towers, dt);
-                if (projectile != null)
-                {
-                    EnemyProjectiles.Add(projectile);
-                }
-
-                // Kiểm tra chết
+                // TRƯỜNG HỢP 1: QUÁI CHẾT (Do bị bắn)
                 if (enemy.Health <= 0)
                 {
                     PlayerMoney += enemy.RewardGold;
                     ShowFloatingText($"+{enemy.RewardGold}", enemy.X, enemy.Y, Color.Gold);
                     Enemies.RemoveAt(i);
-                    continue;
+                    continue; // <--- QUAN TRỌNG: Nhảy sang con tiếp theo, không chạy xuống dưới
                 }
 
-                // Kiểm tra về đích
+                // TRƯỜNG HỢP 2: QUÁI VỀ ĐÍCH
+                // Chỉ khi quái chưa chết mà IsActive = false (do đi hết đường)
                 if (!enemy.IsActive)
                 {
-                    PlayerLives--;
+                    if (PlayerLives > 0) PlayerLives--;
                     Enemies.RemoveAt(i);
                 }
             }
         }
-
         private void UpdateProjectiles(float dt)
         {
             for (int i = Projectiles.Count - 1; i >= 0; i--)

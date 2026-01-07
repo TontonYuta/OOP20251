@@ -131,16 +131,14 @@ namespace TowerDefense.Forms
 
         private void SaveAndClose(bool retry)
         {
+            // Chỉ lấy tên người chơi, KHÔNG gọi hàm lưu điểm ở đây
             if (!string.IsNullOrWhiteSpace(_txtName.Text))
             {
                 PlayerName = _txtName.Text;
-
-                // Gọi hàm lưu điểm từ HighScoreManager
-                try
-                {
-                    HighScoreManager.SaveScore(PlayerName, _score);
-                }
-                catch { }
+            }
+            else
+            {
+                PlayerName = "Unknown";
             }
 
             IsRetry = retry;
